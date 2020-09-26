@@ -1,15 +1,18 @@
 var actors = {};
+var statics = {};
 var floor = 100;
 var gravity = 1;
 
 function initLogic(){
   createActor("player");
+  createBlock("block");
   window.setInterval(logicTick, 1000/10);
 
 }
 
 function createActor(uid) {
   let actor = {
+    "uid" : uid,
     "vX" : 0,
     "vY" : 0,
     "x" : 0,
@@ -25,6 +28,26 @@ function createActor(uid) {
   }
 
 }
+
+function createBlock(uid) {
+  let block = {
+    "uid" : uid,
+    "vX" : 0,
+    "vY" : 0,
+    "x" : 0,
+    "y" : 0,
+    "h" : 10,
+    "w" : 10,
+    "onFloor" : false,
+    }
+  if(statics[uid] === undefined) {
+    statics[uid] = block;
+    game.display.createBlock(uid, block.x, block.y, block.w, block.h);
+
+  }
+
+}
+
 
 function controls(controller, actor){
 
@@ -66,6 +89,7 @@ function logicTick(){
       actor.y = floor;
       actor.onFloor = true;
     }
+    if(actor)
     controls(game.input.keyspressed, actor);
   }
 

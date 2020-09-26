@@ -72,7 +72,7 @@ function initGame()
     //Button default allows single characters or Gamepad in syntax "GP"+<gamepadId>+"_"+<buttonId>
     //Axis default needs Gamepad in syntax "GP"+<gamepadId>+"_AX"+<axisId>
     game.input = new class_userinputmanager({
-        pl1jump: {default:"w",      type:"button"},
+        pl1jump: {default:" ",      type:"button"},
         pl1moveLeft:  {default:"a",      type:"button"},
         pl1dash:   {default:"s",      type:"button"},
         pl1moveRight:   {default:"d",      type:"button"},
