@@ -1,5 +1,6 @@
 var actors = {};
 var floor = 100;
+var gravity = 1;
 
 function initLogic(){
   createActor("player");
@@ -28,11 +29,13 @@ function logicTick(){
 
   for (uid in actors){
 
-    console.log(actors[uid]);
     let actor = actors[uid];
     actor.x += actor.vX;
     actor.y += actor.vY;
     game.display.moveSprite(uid, actor.x, actor.y);
+    if(actor.y < floor){
+      actor.vY += gravity;
+    }
 
   }
 
