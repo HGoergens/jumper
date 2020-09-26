@@ -16,7 +16,7 @@ function initGame()
 
   //game logic
   //Mapdata worker
-  game.worker = new Worker('workers_map.js');
+  game.worker = new Worker('md_worker.js');
 
   //Output
   game.worker.addEventListener('message', function(e) {
