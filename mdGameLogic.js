@@ -1,4 +1,5 @@
 var actors = {};
+var floor = 100;
 
 function initLogic(){
   createActor("player");
@@ -8,8 +9,8 @@ function initLogic(){
 
 function createActor(uid) {
   let actor = {
-    "vX" : 1,
-    "vY" : 1,
+    "vX" : 0,
+    "vY" : 0,
     "x" : 0,
     "y" : 0,
     "h" : 10,
