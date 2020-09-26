@@ -94,7 +94,7 @@ var spritesheet_1 = { "frames": {
     "sourceSize": { "w": 17, "h": 15 },
     "duration": 100
    },
-   "char_run_12": {
+   "char_run_0": {
     "frame": { "x": 204, "y": 0, "w": 17, "h": 15 },
     "rotated": false,
     "trimmed": false,
