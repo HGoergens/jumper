@@ -34,9 +34,11 @@ function initGame()
   game.input = {};
 
 
-  game.tick = function()
+  game.displayTick = function()
   {
 
   }
-  game.tick();
+  game.displayTick();
+
+  initLogic();
 }
