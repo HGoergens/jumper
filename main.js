@@ -29,7 +29,7 @@ function initGame()
 
     game.display.moveSprite = function(uid,x,y)
     {
-      console.log(uid,x,y)
+      //console.log(uid,x,y)
       game.display.sprites[uid].position.x = x;
       game.display.sprites[uid].position.y = y;
     }
