@@ -11,8 +11,25 @@ function initGame()
 
   //display
   game.display = {};
-  game.app = new PIXI.Application({ antialias: true,width:game.state.w,height:game.state.h});
+  game.app = new PIXI.Application({ antialias: false,width:game.state.w,height:game.state.h});
   document.body.appendChild(game.app.view);
+
+  //game logic
+  //Mapdata worker
+  game.worker = new Worker('workers_map.js');
+
+  //Output
+  game.worker.addEventListener('message', function(e) {
+
+      for(var n in e.data)
+      {
+
+      }
+
+  }, false);
+
+//Input
+  game.worker.postMessage({xyz:true});
 
 
   //input
@@ -23,4 +40,5 @@ function initGame()
   {
 
   }
+  game.tick();
 }
