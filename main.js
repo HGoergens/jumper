@@ -21,10 +21,7 @@ function initGame()
   //Output from worker
   game.worker.addEventListener('message', function(e) {
 
-      for(var n in e.data)
-      {
-
-      }
+      console.log(e);
 
   }, false);
 
