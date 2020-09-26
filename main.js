@@ -17,11 +17,18 @@ function initGame()
   game.display.sprites = {};
     game.display.createSprite = function(uid,x,y,w,h)
     {
+      var debugbg = new PIXI.Graphics();
+          debugbg.beginFill(0xFF0000,0.2);
+          debugbg.drawRect(-(w/2),-(h/2),Math.abs(w),Math.abs(h));
+          debugbg.endFill();
       var sprite = new PIXI.Sprite(game.spritesheet.textures["char_stand"]);
           sprite.position.x = x;
           sprite.position.y = y;
           sprite.width = w;
           sprite.height = h;
+          sprite.anchor.x = 0.5;
+          sprite.anchor.y = 0.5;
+          sprite.addChild(debugbg);
       game.app.stage.addChild(sprite);
       game.display.sprites[uid] = sprite;
     }
@@ -29,6 +36,17 @@ function initGame()
     game.display.moveSprite = function(uid,x,y)
     {
       //console.log(uid,x,y)
+      if(game.display.sprites[uid].position.x > x
+      && game.display.sprites[uid].width > 0)
+      {console.log("ghjkl",game.display.sprites[uid].width,game.display.sprites[uid].position.x,x)
+        game.display.sprites[uid].width *= -1;
+      }
+      else if(game.display.sprites[uid].position.x < x
+      && game.display.sprites[uid].width < 0)
+      {
+        game.display.sprites[uid].width *= -1;
+      }
+
       game.display.sprites[uid].position.x = x;
       game.display.sprites[uid].position.y = y;
     }
@@ -37,7 +55,7 @@ function initGame()
     {
       var sprite = new PIXI.Graphics();
           sprite.beginFill(0x0000FF);
-          sprite.drawRect(0,0,w,h);
+          sprite.drawRect(-w/2,-h/2,w,h);
           sprite.endFill();
           sprite.position.x = x;
           sprite.position.y = y;
