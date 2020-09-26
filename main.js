@@ -11,11 +11,12 @@ function initGame()
   game.display = {};
 
   //input
-  game.state = {};
+  game.input = {};
   }
 
   game.tick = function()
   {
-    
+
   }
 }
+initGame();
