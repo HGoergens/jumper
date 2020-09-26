@@ -4,7 +4,7 @@ var gravity = 1;
 
 function initLogic(){
   createActor("player");
-  window.setInterval(logicTick, 1000/60);
+  window.setInterval(logicTick, 1000/10);
 
 }
 
@@ -16,6 +16,7 @@ function createActor(uid) {
     "y" : 0,
     "h" : 10,
     "w" : 10,
+    "onFloor" : false,
     }
   if(actors[uid] === undefined) {
     actors[uid] = actor;
@@ -23,6 +24,29 @@ function createActor(uid) {
 
   }
 
+}
+
+function controls(controller, actor){
+
+    if(controller["pl1moveRight"] === 1){
+      actor.vX += 1;
+
+    } else if (controller["pl1moveLeft"] === 1){
+      actor.vX -= 1;
+
+    } else {
+
+      actor.vX = 0;
+
+    }
+
+    if(controller["pl1jump"] === 1 && actor.onFloor === true){
+      actor.vY = -10;
+      actor.onFloor = false;
+
+    } else if (controller["pl1jump"] === undefined) {
+      actor.vY = Math.max(actor.vY, 0);
+    }
 }
 
 function logicTick(){
@@ -35,8 +59,14 @@ function logicTick(){
     game.display.moveSprite(uid, actor.x, actor.y);
     if(actor.y < floor){
       actor.vY += gravity;
-    }
 
+
+    } else {
+      actor.vY = 0;
+      actor.y = floor;
+      actor.onFloor = true;
+    }
+    controls(game.input.keyspressed, actor);
   }
 
 }
