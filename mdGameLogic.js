@@ -17,7 +17,7 @@ function createActor(uid) {
     }
   if(actors[uid] === undefined) {
     actors[uid] = actor;
-    game.display.createSprite(uid, x, y, w, h);
+    game.display.createSprite(uid, actor.x, actor.y, actor.w, actor.h);
 
   }
 
