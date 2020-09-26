@@ -24,10 +24,13 @@ function initGame()
       var sprite = new PIXI.Sprite(game.spritesheet.textures["char_stand"]);
           sprite.position.x = x;
           sprite.position.y = y;
+          sprite.direction = "right";
           sprite.width = w;
           sprite.height = h;
           sprite.anchor.x = 0.5;
           sprite.anchor.y = 0.5;
+          sprite.animationFrame = 0;
+          sprite.uid = uid;
           sprite.addChild(debugbg);
       game.app.stage.addChild(sprite);
       game.display.sprites[uid] = sprite;
@@ -35,20 +38,36 @@ function initGame()
 
     game.display.moveSprite = function(uid,x,y)
     {
-      //console.log(uid,x,y)
-      if(game.display.sprites[uid].position.x > x
-      && game.display.sprites[uid].width > 0)
-      {console.log("ghjkl",game.display.sprites[uid].width,game.display.sprites[uid].position.x,x)
-        game.display.sprites[uid].width *= -1;
-      }
-      else if(game.display.sprites[uid].position.x < x
-      && game.display.sprites[uid].width < 0)
+      var sprite = game.display.sprites[uid];
+      var sprite = game.display.sprites[uid];
+
+      if(sprite.position.x > x)
       {
-        game.display.sprites[uid].width *= -1;
+        sprite.scale.x = -1;
+        sprite.animationFrame++;
+      }
+      else if(sprite.position.x < x)
+      {
+        sprite.scale.x = 1;
+        sprite.animationFrame++;
+      }
+      else
+      {
+         sprite.animationFrame = 0;
       }
 
-      game.display.sprites[uid].position.x = x;
-      game.display.sprites[uid].position.y = y;
+      if(sprite.animationFrame !== 0)
+      {
+        sprite.animationFrame = sprite.animationFrame%12;
+        sprite.texture = game.spritesheet.textures["char_run_"+sprite.animationFrame];
+      }
+      else
+      {
+        sprite.texture = game.spritesheet.textures["char_stand"];
+      }
+
+      sprite.position.x = x;
+      sprite.position.y = y;
     }
 
     game.display.createBlock = function(uid,x,y,w,h)
@@ -60,7 +79,6 @@ function initGame()
           sprite.position.x = x;
           sprite.position.y = y;
       game.app.stage.addChild(sprite);
-      game.display.sprites[uid] = sprite;
     }
 
   //game logic
@@ -123,9 +141,42 @@ function initGame()
 
               game.displayTick = function()
               {
+                requestAnimationFrame(game.displayTick);
 
+                for(var uid in game.display.sprites)
+                {
+                  var sprite = game.display.sprites[uid];
+
+                  if(sprite.position.x > x)
+                  {
+                    //sprite.width = -1 * Math.abs(sprite.width);
+                    sprite.animationFrame++;
+                  }
+                  else if(sprite.position.x < x)
+                  {
+                    //sprite.width = Math.abs(sprite.width);
+                    sprite.animationFrame++;
+                  }
+                  else
+                  {
+                     sprite.animationFrame = 0;
+                  }
+
+                  if(sprite.animationFrame !== 0)
+                  {
+                    sprite.animationFrame = sprite.animationFrame%36;
+                    sprite.texture = game.spritesheet.textures["char_run_"+Math.ceil(sprite.animationFrame/3)];
+                  }
+                  else
+                  {
+                    sprite.texture = game.spritesheet.textures["char_stand"];
+                  }
+
+                  sprite.position.x = x;
+                  sprite.position.y = y;
+                }
               }
-              game.displayTick();
+              //game.displayTick();
 
               initLogic();
 
