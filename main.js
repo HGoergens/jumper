@@ -62,10 +62,6 @@ function initGame()
 */
 
   //input
-<<<<<<< HEAD
-  game.input = new class_userinputmanager({
-        pl1jump: {default:"w",      type:"button"},
-=======
   game.input = {};
 
   //----------------------------------------------------------
@@ -76,7 +72,6 @@ function initGame()
     //Axis default needs Gamepad in syntax "GP"+<gamepadId>+"_AX"+<axisId>
     game.input = new class_userinputmanager({
         pl1jump: {default:" ",      type:"button"},
->>>>>>> 0b681fe0206a1abf5d4222b2043f93f08570297b
         pl1moveLeft:  {default:"a",      type:"button"},
         pl1dash:   {default:"s",      type:"button"},
         pl1moveRight:   {default:"d",      type:"button"},

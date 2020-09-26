@@ -28,8 +28,8 @@ function createActor(uid) {
     "vY" : 0,
     "x" : 0,
     "y" : 0,
-    "h" : 10,
-    "w" : 10,
+    "h" : 17,
+    "w" : 15,
     "onFloor" : false,
     }
   if(actors[uid] === undefined) {
@@ -95,9 +95,9 @@ function logicTick(){
     for(let sid in statics){
       let static = statics[sid];
 
-      if(actor.y + actor.h > static.y && (actor.x + actor.w) > static.x && actor.x < (static.x + static.w)  ){
+      if(actor.y + actor.h >= static.y && (actor.x + actor.w) > static.x && actor.x < (static.x + static.w)  ){
         actor.vY = 0;
-        actor.y = static.y;
+        actor.y = static.y-actor.h;
         actor.onFloor = true;
       }
 
