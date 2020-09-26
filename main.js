@@ -60,10 +60,10 @@ function initGame()
     //Button default allows single characters or Gamepad in syntax "GP"+<gamepadId>+"_"+<buttonId>
     //Axis default needs Gamepad in syntax "GP"+<gamepadId>+"_AX"+<axisId>
     game.input = new class_userinputmanager({
-        pl1attack: {default:"w",      type:"button"},
-        pl1block:  {default:"a",      type:"button"},
+        pl1jump: {default:"w",      type:"button"},
+        pl1moveLeft:  {default:"a",      type:"button"},
         pl1dash:   {default:"s",      type:"button"},
-        pl1jump:   {default:"d",      type:"button"},
+        pl1moveRight:   {default:"d",      type:"button"},
         pl1menu:   {default:"m",      type:"button"},
         pl1NS_move:{default:"",				type:"axes"},
         pl1EW_move:{default:"",       type:"axes"},
@@ -76,23 +76,11 @@ function initGame()
         pl2EW_move:{default:"GP0_AX0",type:"axes"}
       });
 
-    //TMP - create DebugValueTracker
-  	var DebugValueTracker = document.createElement("DIV");
-    document.body.appendChild(DebugValueTracker);
-
-    window.setInterval(function()
-    {
-    	//Should happen in Game-Loop (>50fps)
-    	game.input.pollGamepads();
-
-    	//Update DebugValueTracker
-      DebugValueTracker.textContent = JSON.stringify(game.input.keyspressed);
-    },1000/10);
 
 
 
     //TMP - Open settings UI
-    document.body.appendChild(game.input.showConfig());
+    //document.body.appendChild(game.input.showConfig());
 
 
 
