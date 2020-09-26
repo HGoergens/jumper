@@ -38,14 +38,6 @@ function initGame()
 
     game.display.moveSprite = function(uid,x,y)
     {
-<<<<<<< HEAD
-      //console.log(uid,x,y)
-      if(game.display.sprites[uid].position.x > x
-      && game.display.sprites[uid].width > 0)
-      {//console.log("ghjkl",game.display.sprites[uid].width,game.display.sprites[uid].position.x,x)
-        game.display.sprites[uid].width *= -1;
-=======
-      var sprite = game.display.sprites[uid];
       var sprite = game.display.sprites[uid];
 
       if(sprite.position.x > x)
@@ -57,7 +49,6 @@ function initGame()
       {
         sprite.scale.x = 1;
         sprite.animationFrame++;
->>>>>>> 40a72efa6499a85dc6a30110cfbf38645ef90b52
       }
       else
       {
