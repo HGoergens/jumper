@@ -110,7 +110,7 @@ function logicTick(){
             actor.onFloor = true;
           } else if (from === "Left"){
             actor.vY = 0;
-            actor.y = static.y - actor.h / 2;
+            actor.y = static.y - (static.h / 2) - (actor.h / 2);
             actor.onFloor = true;
           } else if (from === "Bottom"){
             actor.vY = 0;
