@@ -31,7 +31,7 @@ function logicTick(){
     let actor = actors[uid];
     actor.x += actor.vX;
     actor.y += actor.vY;
-    game.display.moveSprite(actor, actor.x, actor.y);
+    game.display.moveSprite(uid, actor.x, actor.y);
 
   }
 
