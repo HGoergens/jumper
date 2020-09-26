@@ -34,6 +34,18 @@ function initGame()
       game.display.sprites[uid].position.y = y;
     }
 
+    game.display.createBlock = function(uid,x,y,w,h)
+    {
+      var sprite = new PIXI.Graphics();
+          sprite.beginFill(0x0000FF);
+          sprite.drawRect(0,0,w,h);
+          sprite.endFill();
+          sprite.position.x = x;
+          sprite.position.y = y;
+      game.app.stage.addChild(sprite);
+      game.display.sprites[uid] = sprite;
+    }
+
   //game logic
   /*
   //Mapdata worker
