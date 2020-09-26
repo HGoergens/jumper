@@ -55,7 +55,12 @@ function initGame()
          sprite.animationFrame = 0;
       }
 
-      if(sprite.animationFrame !== 0)
+      //console.log(x,y);
+      if(y !== sprite.y)
+      {
+        sprite.texture = game.spritesheet.textures["char_jump"];
+      }
+      else if(sprite.animationFrame !== 0)
       {
         sprite.animationFrame = sprite.animationFrame%12;
         sprite.texture = game.spritesheet.textures["char_run_"+sprite.animationFrame];
