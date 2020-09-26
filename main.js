@@ -15,6 +15,7 @@ function initGame()
   document.body.appendChild(game.app.view);
 
   //game logic
+  /*
   //Mapdata worker
   game.worker = new Worker('md_worker.js');
 
@@ -27,7 +28,7 @@ function initGame()
 
 //Input to worker
   game.worker.postMessage({xyz:true});
-
+*/
 
   //input
   game.input = {};
