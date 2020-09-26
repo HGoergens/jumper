@@ -38,7 +38,7 @@ function initGame()
       //console.log(uid,x,y)
       if(game.display.sprites[uid].position.x > x
       && game.display.sprites[uid].width > 0)
-      {console.log("ghjkl",game.display.sprites[uid].width,game.display.sprites[uid].position.x,x)
+      {//console.log("ghjkl",game.display.sprites[uid].width,game.display.sprites[uid].position.x,x)
         game.display.sprites[uid].width *= -1;
       }
       else if(game.display.sprites[uid].position.x < x
@@ -116,7 +116,7 @@ function initGame()
           game.spritesheet = new PIXI.Spritesheet(resources["myimage"].texture.baseTexture, spritesheet_1);
 
           game.spritesheet.parse(function(){
-             console.log(game.spritesheet);
+             //console.log(game.spritesheet);
           });
 
 

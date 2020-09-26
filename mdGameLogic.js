@@ -1,21 +1,15 @@
 var actors = {};
 var statics = {};
-//var floor = 100;
 var gravity = 1;
 
 function initLogic(){
   createActor("player");
   createBlock("block");
-  game.display.createBlock("block", 90, 80, 20, 5);
-  statics["block"].x = 90;
-  statics["block"].y = 80;
-  statics["block"].w = 20;
-  statics["block"].h = 5;
   createBlock("floor");
-  game.display.createBlock("floor", 0, 100, 500, 10);
-  statics["floor"].x = 0;
+  game.display.createBlock("floor", 200, 100, 300, 10);
+  statics["floor"].x = 200;
   statics["floor"].y = 100;
-  statics["floor"].w = 500;
+  statics["floor"].w = 300;
   statics["floor"].h = 10;
   window.setInterval(logicTick, 1000/10);
 
@@ -26,7 +20,7 @@ function createActor(uid) {
     "uid" : uid,
     "vX" : 0,
     "vY" : 0,
-    "x" : 0,
+    "x" : 250,
     "y" : 0,
     "h" : 17,
     "w" : 15,
@@ -46,7 +40,7 @@ function createBlock(uid) {
     "vX" : 0,
     "vY" : 0,
     "x" : 90,
-    "y" : 80,
+    "y" : 50,
     "h" : 5,
     "w" : 20,
     "onFloor" : false,
@@ -83,6 +77,15 @@ function controls(controller, actor){
     }
 }
 
+function getDirections(actor, obstacle){
+  if ( actor.x - actor.h / 2 > obstacle.x + obstacle.h / 2 ){
+    console.log("Top");
+  } else if (actor.x < obstacle.x){
+    console.log("Left");
+  }
+  return "Left";
+}
+
 function logicTick(){
 
   for (let uid in actors){
@@ -95,10 +98,30 @@ function logicTick(){
     for(let sid in statics){
       let static = statics[sid];
 
-      if(actor.y + actor.h >= static.y && (actor.x + actor.w) > static.x && actor.x < (static.x + static.w)  ){
-        actor.vY = 0;
-        actor.y = static.y-actor.h;
-        actor.onFloor = true;
+      if(actor.y + actor.h / 2 >= static.y - static.h / 2 &&
+         actor.y + actor.h / 2 < static.y + static.h / 2 &&
+         (actor.x) > static.x - (static.w / 2) &&
+         actor.x < (static.x + static.w / 2)  )
+         {
+          let from = getDirections(actor, static);
+          if( from === "Top"){
+            actor.vY = 0;
+            actor.y = static.y - actor.h / 2;
+            actor.onFloor = true;
+          } else if (from === "Left"){
+            actor.vY = 0;
+            actor.y = static.y - actor.h / 2;
+            actor.onFloor = true;
+          } else if (from === "Bottom"){
+            actor.vY = 0;
+            actor.y = static.y - actor.h;
+            actor.onFloor = true;
+          } else if (from === "Right"){
+            actor.vY = 0;
+            actor.y = static.y - actor.h;
+            actor.onFloor = true;
+          }
+
       }
 
     }
