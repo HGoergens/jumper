@@ -13,7 +13,7 @@ function initGame()
   game.display = {};
   game.app = new PIXI.Application({ antialias: false,width:game.state.w,height:game.state.h});
   document.body.appendChild(game.app.view);
- //console.log();
+ 
   game.display.sprites = {};
     game.display.createSprite = function(uid,x,y,w,h)
     {
