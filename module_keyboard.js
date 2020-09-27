@@ -7,7 +7,7 @@
 */
 
 //TODO: check if axes need threshholds
-//multi-user
+//multi-user / multi-scenario (i.e. UI, Vehicle, Game, ....)
 //check if events are needed for buttons too
 //multiple keys (ie. gamepad/button) for one functionality
 
@@ -60,6 +60,11 @@ class class_userinputmanager
 	      {
 	        if(this.keyspressed[effect] === undefined)
 	        {
+						if(this.catalog[effect].eventTarget)
+						{
+							this.catalog[effect].eventTarget("down");
+						}
+
 	          this.keyspressed[effect] = 1;
 	          e.preventDefault();
 	        }
@@ -70,6 +75,10 @@ class class_userinputmanager
 	    	var effect = this.keys[e.key];
 	      if(effect !== undefined)
 	      {
+					if(this.catalog[effect].eventTarget)
+					{
+						this.catalog[effect].eventTarget("up");
+					}
 	        this.keyspressed[effect] = undefined;
 	        e.preventDefault();
 	      }
@@ -120,10 +129,22 @@ class class_userinputmanager
             {
               if(gp.buttons[j].pressed)
               {
+									if(this.catalog[effect].eventTarget
+									&& this.keyspressed[effect] === undefined)
+									{
+										this.catalog[effect].eventTarget("down");
+									}
+
                   this.keyspressed[effect] = gp.buttons[j].value;
               }
               else
               {
+								if(this.catalog[effect].eventTarget
+								&& this.keyspressed[effect] !== undefined)
+								{
+									this.catalog[effect].eventTarget("up");
+								}
+
                 this.keyspressed[effect] = undefined;
               }
             }
