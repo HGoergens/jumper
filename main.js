@@ -10,96 +10,9 @@ function initGame()
   game.state.h = 400;
 
   //display
-  game.display = {};
-  game.app = new PIXI.Application({ antialias: false,width:game.state.w,height:game.state.h});
-  document.body.appendChild(game.app.view);
+  game.display = new class_display(game.state.w,game.state.h);
+  document.body.appendChild(game.display.app.view);
 
-  game.display.sprites = {};
-    game.display.createSprite = function(uid,x,y,w,h)
-    {
-      var debugbg = new PIXI.Graphics();
-          debugbg.beginFill(0xFF0000,0.2);
-          debugbg.drawRect(-(w/2),-(h/2),Math.abs(w),Math.abs(h));
-          debugbg.endFill();
-      var sprite = new PIXI.Sprite(game.spritesheet.textures["char_stand"]);
-          sprite.position.x = x;
-          sprite.position.y = y;
-          sprite.direction = "right";
-          sprite.width = w;
-          sprite.height = h;
-          sprite.anchor.x = 0.5;
-          sprite.anchor.y = 0.5;
-          sprite.animationFrame = 0;
-          sprite.uid = uid;
-          sprite.addChild(debugbg);
-      game.app.stage.addChild(sprite);
-      game.display.sprites[uid] = sprite;
-    }
-
-    game.display.moveSprite = function(uid,x,y)
-    {
-      var sprite = game.display.sprites[uid];
-
-      if(sprite.position.x > x)
-      {
-        sprite.scale.x = -1;
-        sprite.animationFrame++;
-      }
-      else if(sprite.position.x < x)
-      {
-        sprite.scale.x = 1;
-        sprite.animationFrame++;
-      }
-      else
-      {
-         sprite.animationFrame = 0;
-      }
-
-      //console.log(x,y);
-      if(y !== sprite.y)
-      {
-        sprite.texture = game.spritesheet.textures["char_jump"];
-      }
-      else if(sprite.animationFrame !== 0)
-      {
-        sprite.animationFrame = sprite.animationFrame%12;
-        sprite.texture = game.spritesheet.textures["char_run_"+sprite.animationFrame];
-      }
-      else
-      {
-        sprite.texture = game.spritesheet.textures["char_stand"];
-      }
-
-      sprite.position.x = x;
-      sprite.position.y = y;
-    }
-
-    game.display.createBlock = function(uid,x,y,w,h)
-    {
-      var sprite = new PIXI.Graphics();
-          sprite.beginFill(0x0000FF);
-          sprite.drawRect(-w/2,-h/2,w,h);
-          sprite.endFill();
-          sprite.position.x = x;
-          sprite.position.y = y;
-      game.app.stage.addChild(sprite);
-    }
-
-  //game logic
-  /*
-  //Mapdata worker
-  game.worker = new Worker('md_worker.js');
-
-  //Output from worker
-  game.worker.addEventListener('message', function(e) {
-
-      console.log(e);
-
-  }, false);
-
-//Input to worker
-  game.worker.postMessage({xyz:true});
-*/
 
   //input
   game.input = {};
@@ -141,46 +54,6 @@ function initGame()
              //console.log(game.spritesheet);
           });
 
-
-
-              game.displayTick = function()
-              {
-                requestAnimationFrame(game.displayTick);
-
-                for(var uid in game.display.sprites)
-                {
-                  var sprite = game.display.sprites[uid];
-
-                  if(sprite.position.x > x)
-                  {
-                    //sprite.width = -1 * Math.abs(sprite.width);
-                    sprite.animationFrame++;
-                  }
-                  else if(sprite.position.x < x)
-                  {
-                    //sprite.width = Math.abs(sprite.width);
-                    sprite.animationFrame++;
-                  }
-                  else
-                  {
-                     sprite.animationFrame = 0;
-                  }
-
-                  if(sprite.animationFrame !== 0)
-                  {
-                    sprite.animationFrame = sprite.animationFrame%36;
-                    sprite.texture = game.spritesheet.textures["char_run_"+Math.ceil(sprite.animationFrame/3)];
-                  }
-                  else
-                  {
-                    sprite.texture = game.spritesheet.textures["char_stand"];
-                  }
-
-                  sprite.position.x = x;
-                  sprite.position.y = y;
-                }
-              }
-              //game.displayTick();
 
               initLogic();
 

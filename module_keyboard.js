@@ -7,8 +7,10 @@
 */
 
 //TODO: check if axes need threshholds
-
 //multi-user
+//check if events are needed for buttons too
+//multiple keys (ie. gamepad/button) for one functionality
+
 class class_userinputmanager
 {
 	constructor(catalog)
