@@ -12,7 +12,8 @@ class class_display
         debugbg.beginFill(0xFF0000,0.2);
         debugbg.drawRect(-(w/2),-(h/2),Math.abs(w),Math.abs(h));
         debugbg.endFill();
-    var sprite = new PIXI.Sprite(game.spritesheet.textures["char_stand"]);
+
+    var sprite = new PIXI.Sprite(this.spritesheet.textures["char_stand"]);
         sprite.position.x = x;
         sprite.position.y = y;
         sprite.direction = "right";
@@ -49,16 +50,16 @@ class class_display
     //console.log(x,y);
     if(y !== sprite.y)
     {
-      sprite.texture = game.spritesheet.textures["char_jump"];
+      sprite.texture = this.spritesheet.textures["char_jump"];
     }
     else if(sprite.animationFrame !== 0)
     {
       sprite.animationFrame = sprite.animationFrame%12;
-      sprite.texture = game.spritesheet.textures["char_run_"+sprite.animationFrame];
+      sprite.texture = this.spritesheet.textures["char_run_"+sprite.animationFrame];
     }
     else
     {
-      sprite.texture = game.spritesheet.textures["char_stand"];
+      sprite.texture = this.spritesheet.textures["char_stand"];
     }
 
     sprite.position.x = x;

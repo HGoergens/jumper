@@ -14,9 +14,6 @@ function initGame()
   document.body.appendChild(game.display.app.view);
 
 
-  //input
-  game.input = {};
-
   //----------------------------------------------------------
 
     //Create class with Interaction-Catalog
@@ -48,9 +45,9 @@ function initGame()
         .add("myimage","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATAAAAAQCAYAAACRICNxAAAAAXNSR0IArs4c6QAABDhJREFUeJztWktq40AQLQ3jRTYBeeGNwBiiIxifISfwIXWCOUPIETQQDN54YYM3WWShWYTyVFotqX5WR0QPBIqi+nVVv65uC2DGjBkzJoqs6x9vq7LB+82p7nxvCF56ZsyYErDuNTVvkfXUMQX8Su2ABpQUpwar7z85dm899wL1z+KrVva7j88Q3lZlg9fQu5MjMAxKkySPxHoUpLUwU5Fgytg99aSSneGPSRFYWDySYvIsfA/ylOqwyodyWvspYvfU4xGHRHaKWzhJBxSiyovbGFEd1y2YiR91U3QSGA78dzn/GhrMKi8avIZkx56EY3ZM1y00eA3p4epNGbtUz73qQCNrrfkx5WPj9Z1Q5UXz/HRsPf8dezm2hx97JaEDuls8RN+hPu0vx9t9lRcN/p1623jdQnM+tJ/3jWdIPhL5x9f/P8xct9Dg3ym3jSE4tSTNP+IedWAZu5QH8Vb7qbA51RntdjenOnt+On6pbUSrA4sFTRVKsVzXYhksvP3lmO0WDzcd1K++xOwvx6zKi84WmDuBLDqwCzofSpHvSDqPr5CdDyVI5SkeXyG7bkEcQ18Xx7EfjpvUd2v+EZY6sOZfU/ddOro6Sk/7OFb0WRgjZxsY00MXUgmW6xqW67pXfrQzMG4CYqvm+VB+KWJO8dJVWzuBtJMHiQvJh8pxyAsgvupzY6egPnBiQB+05FnlRUPHXpo3r/wjNHVgzX+oi/tuCIwbyVyjQ2I/JJ/wDItLQjjmSEAa8gL4jP98KHvl70ZgYfHF9q8xdLX82E1IbAO0J5BGB4I7eeiEAwB4+XjnmIQu8tqc6taqxgHVgz5gDH36LLF3bfe48Mg/wlIH1gVEWvehHapHcwCutb+/HG8xcjqgIR+05MXFXTswLBrcEnHlYhMY7/u2NjFZLHy8OH6Ek1Cy4obELe2Y+mLv2kpwDqxxdcWra0UPyVcTu0aWqyeWf84PFpI6sOQfsVzX5glM508K+9gBhTuJPrytyibWtUqxOdXZcl0PLv4tAutqlTXO/PlbqM4CuroXJMLwoDp2//LxfvM5Jse1L135Q3+lqyeVp37gNiJGPGHrT+8pifbpoKBbR0nnFxKfdvskyT8+96wDS/4R2tr30mG1byEfj9gBPutwt3hQnQG6fDdV5UVvtxRD7P0h5+mqjPt2y9nDdQsteW4cKEffl5z/xXzhyKJ8+B2OdPxjOeP6j3L0/THyT2U96sCSf4Sm9mM6AHRz0CIb6gCQ16HVNgXqEeXSi8AAhoMf+tVLU4TeBKaxy0l633dLXB19GHPiaUgb5bzzb5G15D+0+9NIzJu8EOLFKFUHFtMxhgydRFbyGjqnk/g0hjwlUSt5qdr9Ad/GkPXIf2jb8+vzFARm3RF4QxSHB4FNhbw85L2/ZB6787LYvFdRj915WW1SeI1J+FmDRt5CfjGkJLEQ/wDhSqZjXGHsxwAAAABJRU5ErkJggg==")
         .load(function(loader, resources)
         {
-          game.spritesheet = new PIXI.Spritesheet(resources["myimage"].texture.baseTexture, spritesheet_1);
+          game.display.spritesheet = new PIXI.Spritesheet(resources["myimage"].texture.baseTexture, spritesheet_1);
 
-          game.spritesheet.parse(function(){
+          game.display.spritesheet.parse(function(){
              //console.log(game.spritesheet);
           });
 
