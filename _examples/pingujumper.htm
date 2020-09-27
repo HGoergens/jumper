@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <script>
+
+        var game = {};
+        game.running = false;
+        game.animated = [];
+
+        game.spawnX = 50;
+        game.spawnY = 50;
+        game.level =
+        [
+            {x:10,y:5,h:20,w:100,type:"text", text:"move with <b>a</b> and <b>d</b>"},
+            {x:  0,y:100,h:20,w:150,type:"block"},
+
+
+            {x:150,y:5,h:20,w:300,type:"text", text:"hold <b>a</b> and <b>d</b> to run<br/> jump with <b>w</b>"},
+            {x:150,y:100,h:3,w:100,type:"platform",animated:true,steps:60,step:0,x1:150,y1:100,x2:400,y2:100},
+            {x:300,y:80,h:20,w:20,type:"block"},
+
+            {x:10,y:140,h:20,w:400,type:"text", text:"red stuff kills you"},
+            {x:0,y:160,h:10,w:500,type:"deadly"},
+
+
+            {x:600,y:50,h:20,w:200,type:"text", text:"duck with <b>s</b>"},
+            {x:600,y:110,h:20,w:200,type:"deadly",animated:true,steps:20,step:0,x1:600,y1:110,x2:600,y2:70},
+
+            {x:810,y:90,h:20,w:80,type:"text", text:"wall jumps are tricky"},
+            {x:900,y:70,h:80,w:20,type:"block"},
+            {x:920,y:75,h:3,w:80,type:"platform"},
+            {x:910,y:10,h:20,w:80,type:"text", text:"you can't climb blue walls"},
+            {x:1000,y:0,h:80,w:20,type:"block",ice:true},
+            {x:920,y:90,h:20,w:180,type:"text", text:"but you can drop through platforms with <b>s</b> and <b>w</b>"},
+
+
+            {x:1100,y:50,h:20,w:180,type:"text", text:"checkpoints are orange, touch it to respawn here"},
+            {x:1130,y:110,h:25,w:25,type:"checkpoint",spawnX:1142,spawnY:122},
+
+            {x:500,y:150,h:20,w:700,type:"block"},
+
+
+
+            //{x:  0,y:100,h:200,w:10,type:"block",ice:true},
+
+            //{x:  100,y:250,h:10,w:20,type:"block"},
+
+
+            {x:150,y:250,h:25,w:25,type:"checkpoint",spawnX:162,spawnY:262},
+
+            {x:100,y:300,h:20,w:150,type:"block"},
+            {x:250,y:270,h:50,w:140,type:"text", text:"140px gap<br/>(very hard)"},
+            {x:390,y:300,h:20,w:200,type:"block"},
+            {x:590,y:270,h:50,w:130,type:"text", text:"130px gap<br/>(long jump)"},
+            {x:720,y:300,h:20,w:100,type:"block"},
+            {x:870,y:220,h:20,w:20,type:"deadly",animated:true,steps:20,step:0,x1:870,y1:220,x2:870,y2:320},
+            {x:940,y:300,h:20,w:20,type:"block"},
+            {x:960,y:270,h:50,w:120,type:"text", text:"120px gap<br/>(jump)"},
+            {x:1080,y:300,h:20,w:5,type:"block"},
+            {x:1090,y:270,h:50,w:120,type:"text", text:"120px gap<br/> 5px landing<br/>(dont stop)"},
+            {x:1205,y:300,h:20,w:95,type:"block"},
+
+
+
+            {x:1250,y:100,h:3,w:50,type:"platform",animated:true,steps:40,step:0,x1:1250,y1:100,x2:1250,y2:280},
+
+            {x:1300,y:0,h:1000,w:10,type:"block",ice:true},
+            {x:0,y:0,h:400,w:10,type:"block",ice:true},
+            {x:  0,y:400,h:420,w:10,type:"block"},
+            {x:100,y:400,h:380,w:10,type:"block"},
+
+            //{x:240,y:100,h:200,w:100,type:"block"},
+
+            //{x:100,y:280,h:20,w:20,type:"block"},
+            //{x:60,y:260,h:20,w:20,type:"block"},
+            //{x:100,y:200,h:20,w:20,type:"block"},
+            //{x:100,y:140,h:3,w:80,type:"platform",animated:true,steps:20,step:0,x1:100,y1:140,x2:140,y2:200},
+            //{x:340,y:140,h:3,w:80,type:"platform"},
+            {x:80,y:370,h:30,w:1220,type:"deadly"},
+            //{x:300,y:200,x1:300,y1:200,x2:500,y2:200,steps:20,step:0,h:30,w:30,type:"deadly",animated:true},
+            //{x:140,y:240,h:20,w:20,type:"block"}
+
+
+            {x:10,y:500,h:20,w:60,type:"deadly"},
+            {x:60,y:650,h:20,w:40,type:"deadly"},
+            {x:10,y:800,h:20,w:60,type:"deadly"},
+            {x:0,y:820,h:20,w:1000,type:"block"}
+        ];
+
+        game.tick = function()
+        {
+            for(var n=0; n<game.animated.length;n++)
+            {
+                var data = game.level[game.animated[n].propId];
+
+                data.step += 1;
+                if(data.step >= data.steps*2){data.step = 0;}
+                var step = data.step;
+                if(step >= data.steps){step = (data.steps*2)-step;}
+
+                newX = data.x1+((data.x2-data.x1)*(step/data.steps));
+                newY = data.y1+((data.y2-data.y1)*(step/data.steps));
+
+                if(data.type === "platform"
+                && game.player.x + (game.player.w/2) > Math.min(newX,data.x)
+                && game.player.x - (game.player.w/2) < Math.max(newX+data.w,data.x+data.w)
+                && game.player.y  > Math.min(newY,data.y)
+                && game.player.y  < Math.max(newY,data.y))
+                {
+                    y=newY;
+                    game.player.jumping = 0;
+                    game.player.onwall = false;
+                    game.player.onground = game.animated[n].propId;
+                }
+
+
+                if(game.player.onground === game.animated[n].propId)
+                {
+                    //game.player.x += newX - data.x;
+                    game.player.getMovedX = newX - data.x;
+                    game.player.y = newY;
+                }
+
+                data.x = newX;
+                data.y = newY;
+                game.animated[n].style.left = Math.floor(data.x)+"px";
+                game.animated[n].style.top = Math.floor(data.y)+"px";
+            }
+
+            game.moveActor(game.player,
+            game.player.moveTargetX+game.player.impulseX+game.player.getMovedX,
+            game.player.moveTargetY);
+        };
+
+        game.moveActor = function(actor,x,y)
+        {
+            //THE ONGROUND CHECK HERE MAKES THAT YOU CANT STEER IN AIR AT ALL
+            if(actor.move === "left")
+            {
+                if(actor.onground !== false || actor.moveTargetX > -3)
+                {
+                    actor.moveTargetX = Math.min(-1,Math.max(-5,actor.moveTargetX-0.5));
+                }
+            }
+            else if(actor.move === "right")
+            {
+                if(actor.onground !== false || actor.moveTargetX < 3)
+                {
+                    game.player.moveTargetX = Math.max(1,Math.min(5,game.player.moveTargetX+0.5));
+                }
+            }
+            else
+            {
+               game.player.moveTargetX = 0;
+            }
+            x = actor.moveTargetX+actor.impulseX+actor.getMovedX;
+
+            if(actor.moveTargetX > 0)
+            {
+                actor.direction = 1;
+            }
+            else if(actor.moveTargetX < 0)
+            {
+                actor.direction = -1;
+            }
+
+
+            if(actor.onground !== false && actor.dashing)
+            {
+                if(actor.dashing > 5)
+                {
+                    actor.impulseX += actor.direction * 3;
+                }
+                actor.dashing--;
+            }
+
+            if(actor.onground !== false && actor.crouch)
+            {
+                x = 0; //Math.max(Math.min(x,2),-2);
+                actor.moveTargetX = 0;
+            }
+
+
+            if(actor.onground === false)
+            {
+                actor.moveTargetY = Math.min(10,actor.moveTargetY+1);
+            }
+
+
+            actor.onground = false;
+            actor.onwall = false;
+            for(var n=0; n < game.level.length;n++)
+            {
+                if(game.level[n].type === "deadly"
+                && actor.x+Math.floor(actor.w/2)+x >= game.level[n].x
+                && actor.x-Math.floor(actor.w/2)+x <= game.level[n].x+game.level[n].w
+                && actor.y+y >= game.level[n].y
+                && actor.y-actor.h+y <= game.level[n].y+game.level[n].h)
+                {
+                    console.log("DEAD");
+                    actor.x = game.spawnX;
+                    actor.y = game.spawnY;
+                    actor.moveTargetX = 0;
+                    actor.impulseX = 0;
+                    actor.getMovedX = 0;
+                    actor.moveTargetY = 0;
+                    actor.onground = false;
+                }
+                else if(game.level[n].type === "checkpoint"
+                && actor.x+Math.floor(actor.w/2)+x >= game.level[n].x
+                && actor.x-Math.floor(actor.w/2)+x <= game.level[n].x+game.level[n].w
+                && actor.y+y >= game.level[n].y
+                && actor.y-actor.h+y <= game.level[n].y+game.level[n].h)
+                {
+                    game.spawnX = game.level[n].spawnX;
+                    game.spawnY = game.level[n].spawnY;
+                }
+
+                if(game.level[n].type === "block")
+                {
+                    if(x > 0)
+                    {
+                        if(actor.x+Math.floor(actor.w/2) <= game.level[n].x
+                        && actor.x+Math.floor(actor.w/2)+x >= game.level[n].x)
+                        {
+                            var crossX = -y * ((actor.x+Math.floor(actor.w/2)-game.level[n].x)/x);
+                            if(actor.y+crossX         >= game.level[n].y
+                            && actor.y+crossX-actor.h <= game.level[n].y+game.level[n].h)
+                            {
+                                x = game.level[n].x-(actor.x+Math.floor(actor.w/2));
+                                actor.moveTargetX = 0;
+
+                                if(game.level[n].ice !== true)
+                                {
+                                    //STICKY WALLS
+                                    actor.moveTargetY = 2;
+
+                                    //WALL JUMPS
+                                    actor.onwall = "right";
+                                    //actor.jumping = 4;
+                                }
+                            }
+                        }
+                    }
+                    else if(x < 0)
+                    {
+                        if(actor.x-Math.floor(actor.w/2)   >= game.level[n].x+game.level[n].w
+                        && actor.x-Math.floor(actor.w/2)+x <= game.level[n].x+game.level[n].w)
+                        {
+                            var crossX = -y * (((actor.x-Math.floor(actor.w/2))-(game.level[n].x+game.level[n].w))/x);
+                            if(actor.y+crossX         >= game.level[n].y
+                            && actor.y+crossX-actor.h <= game.level[n].y+game.level[n].h)
+                            {
+                                x = game.level[n].x+game.level[n].w-(actor.x-Math.floor(actor.w/2));
+                                actor.moveTargetX = 0;
+
+                                if(game.level[n].ice !== true)
+                                {
+                                    //STICKY WALLS
+                                    actor.moveTargetY = 2;
+
+                                    //WALL JUMPS
+                                    actor.onwall = "left";
+                                    //actor.jumping = 4;
+                                }
+                            }
+                        }
+                    }
+
+                    if(y < 0)
+                    {
+                        if(actor.y-actor.h >= game.level[n].y+game.level[n].h
+                        && actor.y+y-actor.h < game.level[n].y+game.level[n].h)
+                        {
+                            var crossY = -x * (((actor.y-actor.h)-(game.level[n].y+game.level[n].h))/y);
+                            if(actor.x+crossY+Math.floor(actor.w/2) > game.level[n].x
+                            && actor.x+crossY-Math.floor(actor.w/2) < game.level[n].x+game.level[n].w)
+                            {
+                                if(actor.y !== game.level[n].y)
+                                {
+                                    x = crossY;
+                                }
+
+                                y = (game.level[n].y+game.level[n].h+actor.h)-actor.y;
+                                actor.moveTargetY = 5;
+                            }
+                        }
+                    }
+                }
+
+                if(game.level[n].type === "block"
+                || (game.level[n].type === "platform" && !(actor.crouch && actor.jumping === 8)))
+                if(y > 0)
+                {
+                    if(actor.y <= game.level[n].y
+                    && actor.y+y > game.level[n].y)
+                    {
+                        var crossY = -x * ((actor.y-game.level[n].y)/y);
+                        if(actor.x+crossY+Math.floor(actor.w/2) > game.level[n].x
+                        && actor.x+crossY-Math.floor(actor.w/2) < game.level[n].x+game.level[n].w)
+                        {
+                            if(actor.y !== game.level[n].y)
+                            {
+                                x = crossY;
+                            }
+                            y = game.level[n].y-actor.y;
+                            actor.onground = n;
+                            //actor.jumping = 4;
+                            actor.onwall = false;
+                        }
+                    }
+                }
+            }
+
+
+            if(actor.jumping === 8 && actor.onground !== false && !actor.crouch)
+            {
+                actor.moveTargetY = -10;
+            }
+            else if(actor.jumping === 8 && actor.onwall === "right")
+            {
+                actor.moveTargetY = -10;
+                actor.impulseX = -2;
+            }
+            else if(actor.jumping === 8 && actor.onwall === "left")
+            {
+                actor.moveTargetY = -10;
+                actor.impulseX = 2;
+            }
+
+            if(actor.onground === false){actor.crouch = false;}
+            if(actor.crouch){actor.h=15;}else{actor.h=30;}
+            actor.x = actor.x + x;
+            actor.y = actor.y + y;
+
+            if(actor.direction > 0){actor.beak.style.left = "6px";actor.feathers.style.left = "-5px";}//actor.sprite.style.borderLeft = "none";actor.sprite.style.borderRight = "2px solid red";}
+            if(actor.direction < 0){actor.beak.style.left = "-4px";actor.feathers.style.left = "5px";}//actor.sprite.style.borderRight = "none";actor.sprite.style.borderLeft = "2px solid red";}
+
+            actor.sprite.style.left = Math.floor(actor.x-(actor.w/2))+"px";
+            actor.sprite.style.top = Math.floor(actor.y-actor.h)+"px";
+            actor.sprite.style.height = actor.h+"px";
+
+            if(actor.onground !== false || actor.onwall !== false)
+            {
+                var factor = 1;
+                if     (actor.impulseX >  factor){actor.impulseX-=factor;}
+                else if(actor.impulseX < -factor){actor.impulseX+=factor;}
+                else                             {actor.impulseX = 0;}
+            }
+            actor.getMovedX = 0;
+            if(actor.jumping > 0)
+            {
+                actor.jumping--;
+            }
+            if(actor.shooting > 0)
+            {
+                actor.shooting--;
+            }
+
+        };
+
+        window.onkeydown = function(e)
+        {
+            e.stopPropagation();
+            e.preventDefault();
+
+            if(e.key === "a")
+            {
+                game.player.move = "left";
+            }
+            else if(e.key === "d")
+            {
+                game.player.move = "right";
+            }
+            else if(e.key === "s")
+            {
+                game.player.crouch = true;
+            }
+            else if(e.key === "w")
+            {
+                if(game.player.jumping === 0 && !game.player.jumpKeyPressed)
+                {
+                    game.player.jumping = 8;
+                    game.player.jumpKeyPressed = true;
+                }
+            }
+            else if(e.key === "e")
+            {
+                if(game.player.shooting === 0 && !game.player.shootPressed)
+                {
+                    game.player.shooting = 1;
+                    game.player.shootPressed = true;
+                }
+            }
+            else if(e.key === " ")
+            {
+                if(game.player.dashing === 0)
+                {
+                    game.player.dashing = 8;
+                }
+            }
+
+            return null;
+        };
+        window.onkeyup = function(e)
+        {
+            e.stopPropagation();
+            e.preventDefault();
+
+            if(e.key === "a" && game.player.move === "left")
+            {
+                game.player.move = false;
+            }
+            else if(e.key === "d" && game.player.move === "right")
+            {
+                game.player.move = false;
+            }
+            else if(e.key === "s")
+            {
+                game.player.crouch = false;
+            }
+            else if(e.key === "w")
+            {
+                game.player.jumpKeyPressed = false;
+            }
+            else if(e.key === "e")
+            {
+                game.player.shootPressed = false;
+            }
+            else if(e.key === " ")
+            {
+                game.player.dashing = 5;
+            }
+
+            return null;
+        };
+        window.onclick = function(e)
+        {
+            game.player.x = e.clientX;
+            game.player.y = e.clientY;
+        };
+
+        game.createLevel = function()
+        {
+            for(var n=0; n < game.level.length; n++)
+            {
+                game.createMapObject(n,game.level[n]);
+            }
+        };
+
+        game.createMapObject = function(propId,objectData)
+        {
+            var newObject = document.createElement("DIV");
+
+            newObject.propId = propId;
+            newObject.style.position = "absolute";
+            newObject.style.left = objectData.x+"px";
+            newObject.style.top = objectData.y+"px";
+            newObject.style.width = objectData.w+"px";
+            newObject.style.height = objectData.h+"px";
+
+            if(objectData.type === "deadly")
+            {
+                newObject.style.backgroundColor = "red";
+            }
+            else if(objectData.type === "checkpoint")
+            {
+                newObject.style.backgroundColor = "orange";
+            }
+            else if(objectData.type === "text")
+            {
+                newObject.innerHTML = objectData.text;
+                newObject.style.textAlign = "center";
+            }
+            else if(objectData.ice)
+            {
+                newObject.style.backgroundColor = "lightblue";
+            }
+            else
+            {
+                newObject.style.backgroundColor = "gray";
+            }
+
+            document.body.appendChild(newObject);
+
+            if(objectData.animated === true)
+            {
+                game.animated.push(newObject);
+            }
+        };
+
+        game.createPlayer = function(x,y,color)
+        {
+            color = color || "black";
+
+            var newObject = {};
+
+            newObject.x = x;
+            newObject.y = y;
+            newObject.h = 30;
+            newObject.w = 10;
+            newObject.direction = 1;
+            newObject.moveTargetX = 0;
+            newObject.getMovedX = 0;
+            newObject.impulseX = 0;
+            newObject.moveTargetY = 10;
+            newObject.jumping = 0;
+            newObject.onground = false;
+            newObject.crouch = false;
+            newObject.dashing = 0;
+
+            //SPRITE
+            newObject.sprite = document.createElement("DIV");
+            newObject.sprite.style.position = "absolute";
+            newObject.sprite.style.width = "10px";
+            newObject.sprite.style.backgroundColor = color;
+            newObject.eye = document.createElement("DIV");
+            newObject.eye.style.position = "absolute";
+            newObject.eye.style.width = "2px";
+            newObject.eye.style.height = "2px";
+            newObject.eye.style.left = "4px";
+            newObject.eye.style.top = "2px";
+            newObject.eye.style.backgroundColor = "white";
+            newObject.sprite.appendChild(newObject.eye);
+            newObject.beak = document.createElement("DIV");
+            newObject.beak.style.position = "absolute";
+            newObject.beak.style.width = "6px";
+            newObject.beak.style.height = "6px";
+            newObject.beak.style.left = "6px";
+            newObject.beak.style.top = "4px";
+            newObject.beak.style.border = "1px solid "+color;
+            newObject.beak.style.transform = "rotate(45deg)";
+            newObject.beak.style.backgroundColor = "orange";
+            newObject.sprite.appendChild(newObject.beak);
+            newObject.feathers = document.createElement("DIV");
+            newObject.feathers.style.position = "absolute";
+            newObject.feathers.style.width = "10px";
+            newObject.feathers.style.height = "10px";
+            newObject.feathers.style.left = "-5px";
+            newObject.feathers.style.bottom = "2px";
+            newObject.feathers.style.transform = "rotate(45deg)";
+            newObject.feathers.style.backgroundColor = color;
+            newObject.sprite.appendChild(newObject.feathers);
+
+            document.body.appendChild(newObject.sprite);
+
+            game.player = newObject;
+        };
+
+        game.start = function()
+        {
+            game.createLevel();
+            game.createPlayer(game.spawnX,game.spawnY,"black");
+
+            game.running = true;
+            game.ticker = setInterval(game.tick,33);
+        }
+
+        </script>
+    </head>
+    <body onload="game.start()">
+    </body>
+</html>
