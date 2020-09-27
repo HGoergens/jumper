@@ -13,6 +13,7 @@ function initGame()
   game.display = new class_display(game.state.w,game.state.h);
   document.body.appendChild(game.display.app.view);
 
+  game.ui = new class_interfaceManager();
   function outputEvent(param){console.log("event",param)}
 
   //Create class with Interaction-Catalog
@@ -25,6 +26,7 @@ function initGame()
       pl1moveLeft:  {default:"a",   type:"button"},
       pl1dash:      {default:"s",   type:"button"},
       pl1moveRight: {default:"d",   type:"button"},
+      pl1toggleMenu:{default:"q",   type:"button", eventTarget:game.ui.toggleMenu},
       pl1menu:      {default:"m",      type:"button"},
       pl1NS_move:   {default:"",			 type:"axes"},
       pl1EW_move:   {default:"",       type:"axes"},

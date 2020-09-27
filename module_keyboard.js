@@ -62,7 +62,7 @@ class class_userinputmanager
 	        {
 						if(this.catalog[effect].eventTarget)
 						{
-							this.catalog[effect].eventTarget("down");
+							this.catalog[effect].eventTarget(true);
 						}
 
 	          this.keyspressed[effect] = 1;
@@ -77,7 +77,7 @@ class class_userinputmanager
 	      {
 					if(this.catalog[effect].eventTarget)
 					{
-						this.catalog[effect].eventTarget("up");
+						this.catalog[effect].eventTarget(false);
 					}
 	        this.keyspressed[effect] = undefined;
 	        e.preventDefault();
@@ -132,7 +132,7 @@ class class_userinputmanager
 									if(this.catalog[effect].eventTarget
 									&& this.keyspressed[effect] === undefined)
 									{
-										this.catalog[effect].eventTarget("down");
+										this.catalog[effect].eventTarget(true);
 									}
 
                   this.keyspressed[effect] = gp.buttons[j].value;
@@ -142,7 +142,7 @@ class class_userinputmanager
 								if(this.catalog[effect].eventTarget
 								&& this.keyspressed[effect] !== undefined)
 								{
-									this.catalog[effect].eventTarget("up");
+									this.catalog[effect].eventTarget(false);
 								}
 
                 this.keyspressed[effect] = undefined;
