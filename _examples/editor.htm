@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <script type="text/javascript" src="../libs/pixi.min.js"></script>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <script>
+//Core, Bug, Feature
+//TODO c 2 save file names (saves as array !)
+//TODO c 2 Exporter (create chunks ?)
+
+//TODO f 3 controlZ for groups of elements -> check on every mouse up if game state different than last saved
+//TODO f 3 controlZ for whole scale/drag process
+//TODO f 4 Grid (disable/change)
+//TODO f 4 Grid (only draw every 10th line when zoomed out)
+//TODO f 5 UI overhaul, toolbar, windows
+
+//TODO f 6 sort multiple items in Z axis
+//TODO f 6 lock elements (display on element)
+//TODO f 6 add logical z layer (diplay on element)
+//TODO f 6 bulk-editing via info-textfield
+
+//TODO f 7 Jump Arc Tool (show possible jumps from all edges)
+//TODO f 7 Catalog attribute: Unique (check if only on map once (like spawn point))
+//TODO f 7 Catalog attribute: Mandatory (check if on map at least once (like spawn point))
+//TODO f 7 Catalog attribute: MaxW/MaxH (size limits, for platforms ?)
+//TODO f 7 Exporter (check for overlaps, mandatories)
+//TODO f 8 Use spriptemap graphics, border rules, etc
+//TODO f 8 Project structure to support different catalogs
+//TODO f 8 JSON import function
+
+var editor;
+function init()
+{
+  editor = createEditor();
+  editor.ticker = window.setInterval(tick,100);
+}
+
+function createEditor()
+{
+	var obj = {};
+	obj.w = 400;
+  obj.h = 400;
+  obj.scrollX = 0;
+  obj.scrollY = 0;
+  obj.scale = 1;
+  obj.textfieldActive = false;
+
+  obj.app = new PIXI.Application({ antialias: true,width:obj.w,height:obj.h});
+  document.body.appendChild(obj.app.view);
+
+	//Create Graphics layer to draw on
+  obj.out = new PIXI.Graphics();
+  obj.out.position.x = 0;
+  obj.out.position.y = 0;
+  obj.app.stage.addChild(obj.out);
+
+  obj.app.view.style.float = "left";
+
+	//basic settings
+  obj.tool = "box";
+  obj.gridSizeX = 10;
+  obj.gridSizeY = 10;
+
+	obj.objectsCatalog = {
+  	red:  {c:0xFF0000},
+  	green:{c:0x00FF00},
+  	blue: {c:0x0000FF}
+  };
+
+  obj.toolbar = document.createElement("DIV");
+  obj.toolbar.style.float = "left";
+  document.body.appendChild(obj.toolbar);
+
+  obj.toolbar.createTool = document.createElement("DIV");
+  obj.toolbar.createTool.textContent = "create";
+  obj.toolbar.createTool.style.width = "60px";
+  obj.toolbar.createTool.style.height = "60px";
+  obj.toolbar.createTool.style.border = "1px solid black";
+  obj.toolbar.createTool.style.fontWeight = "bold";
+  obj.toolbar.createTool.onclick = function(){editor.tool = "box"; this.style.fontWeight = "bold"; editor.toolbar.editTool.style.fontWeight = "normal";}
+  obj.toolbar.appendChild(obj.toolbar.createTool);
+
+  obj.toolbar.createToolOptions = document.createElement("select");
+  obj.toolbar.appendChild(obj.toolbar.createToolOptions);
+
+  for(var n in obj.objectsCatalog)
+  {
+  	var option = document.createElement("option");
+  			option.value = n;
+  			option.textContent = n;
+  	obj.toolbar.createToolOptions.appendChild(option);
+  }
+
+  obj.toolbar.editTool = document.createElement("DIV");
+  obj.toolbar.editTool.textContent = "edit";
+  obj.toolbar.editTool.style.width = "60px";
+  obj.toolbar.editTool.style.height = "60px";
+  obj.toolbar.editTool.style.border = "1px solid black";
+  obj.toolbar.editTool.onclick = function(){editor.tool = "select"; this.style.fontWeight = "bold"; editor.toolbar.createTool.style.fontWeight = "normal";}
+  obj.toolbar.appendChild(obj.toolbar.editTool);
+
+  obj.toolbar.objInfo = document.createElement("TEXTAREA");
+  obj.toolbar.objInfo.rows = 5;
+  obj.toolbar.objInfo.onfocus = function(){editor.textfieldActive = true;}
+  obj.toolbar.objInfo.onblur  = function(){editor.textfieldActive = false;}
+  obj.toolbar.onkeypress = function(e)
+  {
+  	if(e.key === "Enter")
+    {
+      if(editor.selected.length === 1)
+      {
+      	var old = JSON.stringify(editor.objects[editor.selected[0]]);
+        editor.objects[editor.selected[0]] = JSON.parse(editor.toolbar.objInfo.value);
+
+        editor.saveHistory("change object",editor.selected[0],old);
+
+        editor.updateGfx = true;
+        e.preventDefault();
+      }
+      else
+      {
+        //editor.toolbar.objInfo.target = undefined;
+        //editor.toolbar.objInfo.value = "";
+      }
+    }
+  }
+
+
+
+
+  obj.saveWindow = document.createElement("DIV");
+  obj.saveWindow.style.float = "left";
+  document.body.appendChild(obj.saveWindow);
+
+  var saveButton = document.createElement("DIV");
+  		saveButton.innerHTML = "-save-";
+      saveButton.onmousedown = function(e)
+      {
+        var saveSlot = "save1";
+        editor.saves[saveSlot] = JSON.parse(JSON.stringify(editor.objects));
+        localStorage.setItem('editor_saves',JSON.stringify(editor.saves));
+        editor.refreshSaves();
+      }
+  obj.saveWindow.appendChild(saveButton);
+
+  obj.saves = JSON.parse(localStorage.getItem('editor_saves')) || {};
+
+  obj.refreshSaves = function()
+  {
+  	while(this.saveWindow.children.length > 1)
+    {
+    	this.saveWindow.removeChild(this.saveWindow.lastChild)
+    }
+
+    for(var n in this.saves)
+    {
+      var saveStateButton = document.createElement("DIV");
+          saveStateButton.innerHTML = n;
+          saveStateButton.id = n;
+          saveStateButton.data = this.saves[n];
+          saveStateButton.onmousedown = function(e)
+          {
+            if(e.which === 1)
+            {
+              editor.objects = JSON.parse(JSON.stringify(this.data));
+              localStorage.setItem('editor_current', JSON.stringify(editor.objects));
+              editor.history = [];
+              editor.updateGfx = true;
+            }
+            else if(e.which === 2)
+            {
+            	var saveSlot = this.id;
+							delete editor.saves[saveSlot];
+        			localStorage.setItem('editor_saves',JSON.stringify(editor.saves));
+        			editor.refreshSaves();
+            }
+          }
+      this.saveWindow.appendChild(saveStateButton);
+    }
+  }
+  obj.refreshSaves();
+
+
+
+
+  obj.history = [];
+  obj.saveHistory = function(type,target,data)
+  {
+  	this.history.push([type,target,data]);
+  	localStorage.setItem('editor_current', JSON.stringify(this.objects));
+  }
+  obj.stepBackHistory = function()
+  {
+  	var step = this.history.pop();
+  	if(step !== undefined)
+    {
+      if(step[0] === "create object")
+      {
+        this.objects.splice(step[1],1);
+
+      }
+      else if(step[0] === "change object")
+      {
+      	this.objects[step[1]] = JSON.parse(step[2]);
+      }
+      else if(step[0] === "delete object")
+      {
+      	this.objects.splice(step[1],0,JSON.parse(step[2]));
+      }
+      else if(step[0] === "sort")
+      {
+      	this.objects.splice(step[1], 0, this.objects.splice(step[2], 1)[0]);
+      }
+      else {console.log(step);}
+
+
+      editor.toolbar.objInfo.target = undefined;
+      editor.toolbar.objInfo.value = "";
+
+      this.selected = [];
+      this.updateGfx = true;
+
+      localStorage.setItem('editor_current', JSON.stringify(this.objects));
+    }
+  }
+
+  obj.toolbar.appendChild(obj.toolbar.objInfo);
+
+  obj.updateGfx = true;
+
+  obj.objects = [];
+  obj.selected = [];
+
+  obj.drawRect = function(x,y,w,h,c,line)
+  {
+  	if(c !== undefined){this.out.beginFill(c);}
+    else{this.out.beginFill(0x000000,0);}
+
+    if(line){this.out.lineStyle(2,0xFFFFFF);}
+    else    {this.out.lineStyle(1,0x888888);}
+
+    this.out.drawRect((x-this.scrollX)*this.scale,
+    								 (y-this.scrollY)*this.scale,
+                     w*this.scale,
+                     h*this.scale);
+    this.out.endFill();
+  }
+  obj.drawLine = function(x1,y1,x2,y2,w,c)
+  {
+  	this.out.lineStyle(w,c);
+    this.out.moveTo((x1-this.scrollX)*this.scale, (y1-this.scrollY)*this.scale)
+    this.out.lineTo((x2-this.scrollX)*this.scale, (y2-this.scrollY)*this.scale);
+  }
+
+  obj.scroll = function(x,y)
+  {
+  	this.scrollX += x;
+  	this.scrollY += y;
+    this.updateGfx = true;
+  }
+  obj.zoom = function(zoom,x,y)
+  {
+  	var oldScale = this.scale;
+  	this.scale = Math.min(20,Math.max(0.2,this.scale+zoom));
+
+    var scrollX = (x/oldScale)-(x/this.scale);
+    var scrollY = (y/oldScale)-(y/this.scale);
+
+    this.scroll(scrollX,scrollY);
+
+    this.updateGfx = true;
+  }
+
+
+  obj.delete = function()
+  {
+  	if(this.selected.length > 0)
+    {
+      for(var n=0; n<this.selected.length;n++)
+      {
+      	var old = JSON.stringify(this.objects[this.selected[n]]);
+        this.objects.splice(this.selected[n],1);
+      	editor.saveHistory("delete object",this.selected[n],old);
+      }
+
+      editor.toolbar.objInfo.target = undefined;
+      editor.toolbar.objInfo.value = "";
+
+      this.selected = [];
+      this.updateGfx = true;
+    }
+  }
+
+  obj.sort = function(dir)
+  {
+  	if(this.selected.length === 1)
+    {
+      for(var n=0; n<this.selected.length;n++)
+      {
+        if(this.selected[n]+dir >= 0 && this.selected[n]+dir < this.objects.length)
+        {
+          this.objects.splice(this.selected[n]+dir, 0, this.objects.splice(this.selected[n], 1)[0]);
+          //this.objects.splice(this.selected[n],1);
+
+          editor.saveHistory("sort",this.selected[n],this.selected[n]+dir);
+          this.selected[n]+=dir;
+
+        }
+      }
+
+      editor.toolbar.objInfo.target = undefined;
+      editor.toolbar.objInfo.value = "";
+
+      //this.selected = [];
+      this.updateGfx = true;
+    }
+  }
+
+  obj.copylist = [];
+  obj.copy = function()
+  {
+  	if(this.selected.length > 0)
+    {
+      this.copylist = [];
+      for(var n=0; n<this.objects.length;n++)
+      {
+     	 	if(this.selected.indexOf(n) !== -1)
+        {
+       	 	this.copylist.push(JSON.parse(JSON.stringify(this.objects[n])));
+        }
+      }
+    }
+  }
+
+  obj.paste = function()
+  {
+  	if(this.copylist.length > 0)
+    {
+    	this.selected = [];
+      for(var n=0; n<this.copylist.length;n++)
+      {
+      	this.selected.push(this.objects.length);
+     	 	this.objects.push(JSON.parse(JSON.stringify(this.copylist[n])));
+      	editor.saveHistory("create object",this.objects.length-1);
+      }
+
+      editor.toolbar.objInfo.target = undefined;
+      editor.toolbar.objInfo.value = "";
+
+      this.updateGfx = true;
+    }
+  }
+
+
+  obj.drawMap = function()
+  {
+  	if(this.updateGfx)
+    {
+    	this.out.clear();
+
+      //draw grid
+      for(var n=this.scrollX - (this.scrollX%this.gridSizeX); n < this.scrollX+(this.h/this.scale); n += this.gridSizeX)
+      {
+        //console.log(Math.floor((n+this.scrollX)/10)%10)
+      	var lineColor = 0x444444;
+        if(Math.round((n)/10)%10 === 0)
+        {
+        	lineColor = 0x999999;
+        }
+      	this.drawLine((n),
+        							this.scrollY,
+        							(n),
+        							this.scrollY+(this.h/this.scale),
+                      1,
+                      lineColor);
+      }
+      for(var n=this.scrollY - (this.scrollY%this.gridSizeY); n < this.scrollY+(this.w/this.scale); n += this.gridSizeY)
+      {
+      	var lineColor = 0x444444;
+        if(Math.round((n)/10)%10 === 0)
+        {
+        	lineColor = 0x999999;
+        }
+      	this.drawLine(
+        							this.scrollX,
+        							(n),
+        							this.scrollX+(this.w/this.scale),
+                      (n),
+                      1,
+                      lineColor);
+      }
+
+      //draw objects
+      for(var n=0;n<this.objects.length;n++)
+      {
+      	var c = this.objectsCatalog[this.objects[n].type].c;
+
+        var line = false;
+        if(this.selected.indexOf(n) !== -1){line = true}
+
+        this.drawRect(this.objects[n].x,this.objects[n].y,this.objects[n].w,this.objects[n].h,c,line);
+      }
+
+      //draw selection area
+      if(editor.tool === "select"
+      && editor.draging !== true
+      && editor.dragScroll !== true
+      && editor.resize !== true)
+      {
+      	this.drawRect(editor.anchorX,editor.anchorY,editor.mouseX-editor.anchorX,editor.mouseY-editor.anchorY,undefined,true);
+      }
+
+      this.updateGfx = false;
+    }
+  }
+
+
+  obj.app.view.onmousedown = function(e)
+  {
+  	if(e.which === 1)
+    {
+      editor.anchorX = Math.round(((e.offsetX/editor.scale)+editor.scrollX)/editor.gridSizeX)*editor.gridSizeX;
+      editor.anchorY = Math.round(((e.offsetY/editor.scale)+editor.scrollY)/editor.gridSizeY)*editor.gridSizeY;
+
+      if(editor.tool === "box")
+      {
+      	if(e.shiftKey !== true)
+        {
+        	editor.tool = "select";
+         	editor.toolbar.editTool.style.fontWeight = "bold";
+          editor.toolbar.createTool.style.fontWeight = "normal";
+        }
+
+        editor.selected = [editor.objects.length];
+        editor.resize = true;
+        editor.objects.push({x:editor.anchorX,
+                             y:editor.anchorY,
+                             w:editor.gridSizeX,
+                             h:editor.gridSizeY,
+                             type:editor.toolbar.createToolOptions.value});
+
+      	editor.saveHistory("create object",editor.objects.length-1);
+        editor.updateGfx = true;
+      }
+      else if(editor.tool === "select")
+      {
+        for(var n=editor.objects.length-1;n>=0;n--)
+        {
+          var obj = editor.objects[n];
+          if((e.offsetX/editor.scale)+editor.scrollX > obj.x
+          && (e.offsetX/editor.scale)+editor.scrollX < obj.x + obj.w
+          && (e.offsetY/editor.scale)+editor.scrollY > obj.y
+          && (e.offsetY/editor.scale)+editor.scrollY < obj.y + obj.h)
+          {
+            //console.log(editor.selected.length)
+            if(editor.selected.length === 1
+            && (e.offsetX/editor.scale)+editor.scrollX > obj.x + obj.w -5
+            && (e.offsetY/editor.scale)+editor.scrollY > obj.y + obj.h -5)
+            {
+              editor.anchorX = obj.x;
+              editor.anchorY = obj.y;
+              editor.resize = true;
+            }
+            else if(editor.selected.indexOf(n) !== -1)
+            {
+              editor.draging = true;
+            }
+            return;
+          }
+        }
+      }
+    }
+    else if(e.which === 2)
+    {
+      editor.scrollAnchorX = (e.offsetX/editor.scale);
+      editor.scrollAnchorY = (e.offsetY/editor.scale);
+			editor.dragScroll = true;
+    }
+  }
+
+  //MOUSE UP
+  obj.app.view.onmouseup = function(e)
+  {
+    if(e.which === 1)
+    {
+      if(editor.tool === "select")
+      {
+        var x = (e.offsetX/editor.scale)+editor.scrollX;
+        var y = (e.offsetY/editor.scale)+editor.scrollY;
+
+        if(e.shiftKey === false
+        && editor.draging !== true
+        && editor.resize !== true)
+        {
+          editor.selected = [];
+          editor.updateGfx = true;
+        }
+
+        for(var n=editor.objects.length-1;n>=0;n--)
+        {
+          var obj = editor.objects[n];
+
+            if(Math.max(editor.anchorX,x) > obj.x
+               && Math.min(editor.anchorX,x) < obj.x + obj.w
+               && Math.max(editor.anchorY,y) > obj.y
+               && Math.min(editor.anchorY,y) < obj.y + obj.h)
+            {
+            	if(editor.selected.indexOf(n) === -1)
+              {
+              	if(editor.draging === undefined
+                && editor.resize === undefined)
+                {
+                  editor.selected.push(n);
+                  editor.updateGfx = true;
+
+                  if(editor.anchorX === Math.round(x/editor.gridSizeX)*editor.gridSizeX
+                  && editor.anchorY === Math.round(y/editor.gridSizeY)*editor.gridSizeY)
+                  {
+                    n=-1;
+                  }
+                }
+              }
+              else if(e.shiftKey !== false
+              && editor.selected.length > 1)
+              {
+              	editor.selected.splice(editor.selected.indexOf(n),1);
+                editor.updateGfx = true;
+              }
+            }
+          }
+      }
+
+      //display obj info
+      if(editor.selected.length === 1)
+      {
+        //if(editor.toolbar.objInfo.target !== editor.selected[0])
+        //{
+          editor.toolbar.objInfo.target = editor.selected[0];
+          editor.toolbar.objInfo.value = JSON.stringify(editor.objects[editor.selected[0]]);
+        //}
+      }
+      else
+      {
+        editor.toolbar.objInfo.target = undefined;
+        editor.toolbar.objInfo.value = "";
+      }
+
+      editor.anchorX = undefined;
+      editor.anchorY = undefined;
+      editor.draging = undefined;
+      editor.resize = undefined;
+    }
+    else if(e.which === 2)
+    {
+      editor.dragScroll = undefined;
+    }
+  }
+
+  obj.app.view.onmousemove = function(e)
+  {
+    editor.mouseX = Math.round(((e.offsetX/editor.scale)+editor.scrollX)/editor.gridSizeX)*editor.gridSizeX;
+    editor.mouseY = Math.round(((e.offsetY/editor.scale)+editor.scrollY)/editor.gridSizeY)*editor.gridSizeY;
+
+  	if(editor.dragScroll === true)
+    {
+    	var moveX = (e.offsetX/editor.scale) - editor.scrollAnchorX;
+    	var moveY = (e.offsetY/editor.scale) - editor.scrollAnchorY;
+      editor.scrollAnchorX = (e.offsetX/editor.scale);
+      editor.scrollAnchorY = (e.offsetY/editor.scale);
+      editor.scroll(-moveX,-moveY);
+    }
+    else if(editor.resize === true)
+    {
+    	var old = JSON.stringify(editor.objects[editor.selected[0]]);
+    	var tmpobj = editor.objects[editor.selected[0]];
+      if(editor.mouseX > editor.anchorX){tmpobj.x = editor.anchorX; tmpobj.w = Math.max(editor.gridSizeX,editor.mouseX - editor.anchorX);}
+      else															{tmpobj.x = editor.mouseX; 	tmpobj.w = Math.max(editor.gridSizeX,editor.anchorX - editor.mouseX);}
+      if(editor.mouseY > editor.anchorY){tmpobj.y = editor.anchorY; tmpobj.h = Math.max(editor.gridSizeY,editor.mouseY - editor.anchorY);}
+      else															{tmpobj.y = editor.mouseY; 	tmpobj.h = Math.max(editor.gridSizeY,editor.anchorY - editor.mouseY);}
+
+      editor.saveHistory("change object",editor.selected[0],old);
+
+      editor.updateGfx = true;
+    }
+    else if(editor.draging === true)
+    {
+    	var moveX = editor.mouseX - editor.anchorX;
+    	var moveY = editor.mouseY - editor.anchorY;
+
+      for(var n=0;n<editor.selected.length;n++)
+      {
+       	var old = JSON.stringify(editor.objects[editor.selected[n]]);
+
+      	editor.objects[editor.selected[n]].x += moveX;
+        editor.objects[editor.selected[n]].y += moveY;
+
+        editor.saveHistory("change object",editor.selected[n],old);
+      }
+
+			editor.anchorX += moveX;
+			editor.anchorY += moveY;
+
+      editor.updateGfx = true;
+    }
+    else
+    {
+    	editor.updateGfx = true;
+    }
+  }
+
+  obj.app.view.onmousewheel = function(e)
+  {
+  	if(e.shiftKey !== true)
+    {
+    	editor.zoom(Math.round(e.wheelDelta/100)*0.05,e.offsetX,e.offsetY);
+    }
+    else
+    {
+      var options = Object.keys(editor.objectsCatalog);
+      var curent = options.indexOf(editor.toolbar.createToolOptions.value) - Math.sign(e.wheelDelta);
+
+      if(curent >= 0 && curent < options.length)
+      {
+    		editor.toolbar.createToolOptions.value = options[curent];
+      }
+    }
+  }
+
+  var currentMap = localStorage.getItem('editor_current');
+
+
+  if(currentMap !== JSON.parse(currentMap))
+  {//console.log(currentMap)
+  	obj.objects = JSON.parse(currentMap);
+  }
+
+  return obj;
+}
+
+
+window.onkeypress = function(e)
+{
+  if(editor.textfieldActive === false)
+  {
+    //if     (e.key === "y"){editor.tool = "box";}
+    //else if(e.key === "x"){editor.tool = "select";}
+
+    if     (e.key === "c"){editor.copy();}
+    else if(e.key === "v"){editor.paste();}
+    else if(e.key === "-"){editor.delete();}
+    else if(e.key === ","){editor.sort(-1);}
+    else if(e.key === "."){editor.sort( 1);}
+
+    else if(e.key === "b"){editor.stepBackHistory();}
+
+    else if(e.key === "w"){editor.scroll(  0,-10);}
+    else if(e.key === "a"){editor.scroll(-10,  0);}
+    else if(e.key === "s"){editor.scroll(  0, 10);}
+    else if(e.key === "d"){editor.scroll( 10,  0);}
+
+    else if(e.key === "q"){editor.zoom(-0.1,0,0);}
+    else if(e.key === "e"){editor.zoom( 0.1,0,0);}
+
+    else
+    {
+      console.log(e.key);
+    }
+  }
+}
+
+var tick = function()
+{
+  editor.drawMap();
+}
+//editor.drawMap();
+
+
+
+        </script>
+    </head>
+    <body onload="init()">
+    </body>
+</html>

@@ -2,14 +2,21 @@ class class_interfaceManager
 {
 	constructor()
   {
-    this.options = document.createElement("DIV");
+    this.options = createWindow();
+
+    document.body.appendChild(this.options);
+  }
+
+  createWindow()
+  {
+    var window = document.createElement("DIV");
     this.options.style.position = "abslute";
     this.options.style.width = "100px";
     this.options.style.height = "100px";
     this.options.style.backgroundColor = "red";
     this.options.style.display = "none";
 
-    document.body.appendChild(this.options);
+    return window;
   }
 
   toggleMenu(param)
@@ -19,12 +26,12 @@ class class_interfaceManager
     {
       if(_this.options.style.display === "none")
       {
-        //pause game
+        //TODO: pause game
         _this.options.style.display = "block";
       }
       else
       {
-        //unpause game
+        //TODO: unpause game
         _this.options.style.display = "none";
       }
     }
