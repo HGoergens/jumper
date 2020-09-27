@@ -20,11 +20,12 @@ function createActor(uid) {
     "uid" : uid,
     "vX" : 0,
     "vY" : 0,
+    "maxVX" : 7,
     "x" : 250,
     "y" : 0,
     "h" : 17,
     "w" : 15,
-    "onFloor" : false,
+    "onFloor" : false
     }
   if(actors[uid] === undefined) {
     actors[uid] = actor;
@@ -44,6 +45,7 @@ function createBlock(uid) {
     "h" : 5,
     "w" : 20,
     "onFloor" : false,
+    "grabbed" : false,
     }
   if(statics[uid] === undefined) {
     statics[uid] = block;
@@ -77,11 +79,26 @@ function controls(controller, actor){
     }
 }
 
+function getEdges(obj, lr){
+  if(lr === "left"){
+    let edges = {
+      "topLeft" : (obj.x - (obj.w / 2)) + (obj.h / 2),
+      "bottomeLeft" : (obj.x - (obj.w / 2)) - (obj.h / 2)
+    }
+    return edges;
+  }
+}
+
 function getDirections(actor, obstacle){
-  if ( actor.x - actor.h / 2 > obstacle.x + obstacle.h / 2 ){
-    console.log("Top");
+  if ( actor.x - actor.w / 2  > obstacle.x + obstacle.w / 2 ){
+    let edge = getEdges(actor, "left");
+    if((actor.x - actor.w / 2) + actor.vX < obstacle.x + obstacle.w / 2){
+        //console.log(actor.vX);
+    }
+
+
   } else if (actor.x < obstacle.x){
-    console.log("Left");
+    //console.log("Left");
   }
   return "Left";
 }
@@ -91,46 +108,98 @@ function logicTick(){
   for (let uid in actors){
 
     let actor = actors[uid];
-    actor.x += actor.vX;
+    actor.x += Math.min(actor.vX, actor.maxVX);
     actor.y += actor.vY;
     game.display.moveSprite(uid, actor.x, actor.y);
     actor.onFloor = false;
     for(let sid in statics){
       let static = statics[sid];
 
-      if(actor.y + actor.h / 2 >= static.y - static.h / 2 &&
-         actor.y + actor.h / 2 < static.y + static.h / 2 &&
-         (actor.x) > static.x - (static.w / 2) &&
-         actor.x < (static.x + static.w / 2)  )
-         {
-          let from = getDirections(actor, static);
-          if( from === "Top"){
-            actor.vY = 0;
-            actor.y = static.y - actor.h / 2;
-            actor.onFloor = true;
-          } else if (from === "Left"){
-            actor.vY = 0;
-            actor.y = static.y - (static.h / 2) - (actor.h / 2);
-            actor.onFloor = true;
-          } else if (from === "Bottom"){
-            actor.vY = 0;
-            actor.y = static.y - actor.h;
-            actor.onFloor = true;
-          } else if (from === "Right"){
-            actor.vY = 0;
-            actor.y = static.y - actor.h;
-            actor.onFloor = true;
-          }
 
-      }
 
+            if(static.uid === "block" || static.uid === "floor")
+            {
+                if(actor.vX > 0)
+                {
+                    if(actor.x+Math.floor(actor.w/2) <= static.x - static.w/2
+                    && actor.x+Math.floor(actor.w/2)+actor.vX >= static.x - static.w/2)
+                    {
+                        var crossX = -actor.vY * ((actor.x+Math.floor(actor.w/2)-static.x)/actor.vX);
+                        if(actor.y+crossX         >= static.y
+                        && actor.y+crossX-actor.h <= static.y+static.h)
+                        {
+                            actor.vX = static.x-(actor.x+Math.floor(actor.w/2));
+                        }
+                    }
+                }
+                else if(actor.vX < 0)
+                {
+                    if(actor.x-Math.floor(actor.w/2)   >= static.x+static.w
+                    && actor.x-Math.floor(actor.w/2)+actor.vX <= static.x+static.w)
+                    {
+                        var crossX = -actor.vY * (((actor.x-Math.floor(actor.w/2))-(static.x+static.w))/actor.vX);
+                        if(actor.y+crossX         >= static.y
+                        && actor.y+crossX-actor.h <= static.y+static.h)
+                        {
+                            actor.vX = static.x+static.w-(actor.x-Math.floor(actor.w/2));
+                        }
+                    }
+                }
+
+                if(actor.vY < 0)
+                {
+                    if(actor.y-actor.h >= static.y+static.h
+                    && actor.y+actor.vY-actor.h < static.y+static.h)
+                    {
+                        var crossY = -actor.vX * (((actor.y-actor.h)-(static.y+static.h))/actor.vY);
+                        if(actor.x+crossY+Math.floor(actor.w/2) > static.x
+                        && actor.x+crossY-Math.floor(actor.w/2) < static.x+static.w)
+                        {
+                            if(actor.y !== static.y)
+                            {
+                                actor.vX = crossY;
+                            }
+
+                            actor.vY = (static.y+static.h+actor.h)-actor.y;
+
+                        }
+                    }
+                }
+            }
+
+
+            //if(game.level[n].type === "block"
+            //|| (game.level[n].type === "platform" && !(actor.crouch && actor.jumping === 8)))
+            if(actor.vY > 0)
+            {
+                if(actor.y <= static.y
+                && actor.y+actor.vY > static.y)
+                {
+                    var crossY = -actor.vX * ((actor.y-static.y)/actor.vY);
+                    if(actor.x+crossY+Math.floor(actor.w/2) > static.x - static.w/2
+                    && actor.x+crossY-Math.floor(actor.w/2) < static.x+static.w / 2)
+                    {
+                        if(actor.y !== static.y)
+                        {
+                            actor.vX = crossY;
+                        }
+                        actor.vY = static.y-actor.y;
+                        actor.onFloor = true;
+                        //actor.jumping = 4;
+                        //actor.onwall = false;
+                    }
+                }
+            }
+            if(actor.onFloor === false){
+              actor.vY += 1;
+            }
+
+        }
+
+        controls(game.input.keyspressed, actor);
     }
-    if(actor.onFloor === false){
-      actor.vY += gravity;
-    }
-      controls(game.input.keyspressed, actor);
+
+
 
 
   }
-
-}
